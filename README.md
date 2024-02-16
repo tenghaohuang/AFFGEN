@@ -46,4 +46,4 @@ Follow these steps to get your environment ready:
    python inference.py
    ```
 
-
+The bandit framework is adapted from [contextual-bandit](https://github.com/allenday/contextual-bandit).
