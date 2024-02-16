@@ -22,7 +22,7 @@ positiveStrategy = PositiveStrategy.PositiveStrategy(arms, features)
 simulator = Simulator.Simulator(positiveStrategy)
 cache_size = 30
 
-for epoch in range(10):
+for epoch in range(30):
 
     records = []
     slice = 3000
@@ -72,3 +72,6 @@ for epoch in range(10):
                 previous_rmse = rmse[0][-1]
 
             print(txts_at_timestep[:3])
+
+    # Use pickle to save the trained bandit
+    pickle.dump(positiveStrategy, open(Config.policy_maker_path,"wb"))

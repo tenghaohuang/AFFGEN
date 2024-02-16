@@ -30,10 +30,8 @@ def count_punct(st):
     return cnt
 
 def punish_logits(input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
-    # embed()
-    score = torch.gather(scores, 1, input_ids)
 
-    # if score < 0 then repetition penalty has to be multiplied to reduce the previous token probability
+    score = torch.gather(scores, 1, input_ids)
     score = torch.where(score < 0, score * PENALTY, score / PENALTY)
 
     scores.scatter_(1, input_ids, score)
@@ -43,36 +41,11 @@ def get_storylines(prompt_with_perplexity, crt_length, model,  tokenizer, branch
     '''
         score'(y_t, W_t | y<t) = score(y_t|y<t) + lambda * max(0, max cos_sim(y_t,W))
     '''
-    # print(prompt_with_perplexity)
-
     prompt = prompt_with_perplexity[0]
-    # rt = LM.check_real_tok_probabilities(prompt)
-    # print(rt)
-    # embed()
     perplexity = torch.tensor(prompt_with_perplexity[1]).to(device)
-    # print(prompt_with_perplexity)
-    # print(prompt)
-    # print(perplexity)
-    # wrappedup_model_input = wrapup_input(prompt,'prompt')
-    max_len = 50
     input_ids = tokenizer.encode(prompt, return_tensors='pt')
-    # embed()
-    # model.cuda()
-    # model.eval()
-
     input_ids = input_ids.to(device)
-    cur_len = len(input_ids)
     input_tokens = [input_ids]
-    valid = True
-    # if count_punct(prompt)>1:
-    #     return [prompt,perplexity]
-    # if crt_buget<0:
-    #     beam_output = model.generate(input_ids=input_ids, max_length=50, do_sample=True,
-    #                                     num_beams=5, pad_token_id=tokenizer.eos_token_id)
-    #     txts = tokenizer.decode(beam_output [0], skip_special_tokens=True)
-    #
-    # else:
-
     decoded_tokens_perplexities = expand_storylines(model, input_tokens, branch_factor, \
                                                     perplexity,crt_length,device)
 
@@ -105,8 +78,6 @@ def expand_storylines(model, input_tokens_list, topk, perplexity,crt_length,devi
 
         scores = logits.detach().cpu()
         score = torch.gather(scores, 1, input_ids.detach().cpu())
-
-    # if score < 0 then repetition penalty has to be multiplied to reduce the previous token probability
         score = torch.where(score < 0, score * PENALTY, score / PENALTY)
         input_ids_cpu = input_ids.detach().cpu()
         logits = scores.scatter_(1, input_ids_cpu, score).to(device)
@@ -115,15 +86,7 @@ def expand_storylines(model, input_tokens_list, topk, perplexity,crt_length,devi
 
         logits = F.softmax(logits, dim=-1)
 
-
-        # y = input_ids[2:]
-        # real_topk_probs = logits[np.arange(
-        #     0, y.shape[0], 1), y].data.cpu().numpy().tolist()
-        # real_topk_probs = list(map(lambda x: round(x, 5), real_topk_probs))
-        #
         next_tokens_ids = torch.topk(logits, topk).indices
-        next_tokens_logits = torch.topk(logits, topk).values
-
         tmp_token_list = []
 
         for num, next_token_id in enumerate(next_tokens_ids):
@@ -132,26 +95,14 @@ def expand_storylines(model, input_tokens_list, topk, perplexity,crt_length,devi
                                     torch.unsqueeze(torch.unsqueeze(next_token_id, dim=0), dim=0)],dim = -1)
             y = new_seq[0][1:].cpu()
 
-            # bos = (new_seq[0] == 50257).nonzero(as_tuple=True)[0].cpu().numpy()[0]
-            # sep = (new_seq[0] == 50259).nonzero(as_tuple=True)[0].cpu().numpy()[0]
             real_topk_probs = all_probs[np.arange(
                 0, y.shape[0], 1), y].data.cpu().numpy().tolist()
             real_topk_probs = list(map(lambda x: round(x, 5), real_topk_probs))
-
-
-            # real_topk_probs = real_topk_probs[0:bos]+real_topk_probs[bos+1:sep] + real_topk_probs[sep+1:]
 
             real_topk_probs = [i if i >0.00001 else 0.00001 for i in real_topk_probs ][-crt_length:]
 
 
             new_perplexity = np.prod(real_topk_probs)**(-1/crt_length)
-
-
-            # crt_loss = loss_fct(next_tokens_logits,torch.tensor(num).to(device))
-            #
-            #
-            # prev_loss = torch.log(perplexity)*(crt_length-1)
-            # new_perplexity = torch.exp((prev_loss + crt_loss)/crt_length)
 
             tmp_token_list.append((new_seq,\
                                    new_perplexity))
