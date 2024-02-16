@@ -1,14 +1,6 @@
 # AFFGEN
 Code implementation for EMNLP-findings 2023 paper "Affective and Dynamic Beam Search for Story Generation" 
 
-Below is a sample README.md content for your project, detailing the purpose and setup instructions. Ensure to customize paths, links, and instructions as per your project's specific requirements and directory structure.
-
----
-
-# Project Name
-
-This project leverages natural language processing techniques to analyze stories and predict literary events, enriching text with emotional and narrative insights. It integrates GPT-2 for text generation, a bandit model for policy making, and a Roberta-based classifier for identifying literary event triggers.
-
 ## Requirements
 
 Before you begin, ensure you have met the following requirements:
