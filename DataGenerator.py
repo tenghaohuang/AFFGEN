@@ -62,11 +62,6 @@ class DataGenerator():
 
     def get_topk_reward_each_bucket(self, buckets, budget, crt_length, previous_pivot):
         sample_rewards = []
-
-        # branch_facts = [True if budget > b else False for b in self.branch_factors]
-
-        # print(tup)
-        # embed()#look at perplex
         for num in range(len(buckets)):
             b = self.branch_factors[num]
             buckets[num].sort(key=lambda tup: tup[1], reverse=True)
@@ -84,7 +79,6 @@ class DataGenerator():
                                   mode="train",positiveStrategy=None,presetBeam=None, useTrigger=False):
         txts_at_timestep = []
         overall_features = []
-        # print(text_prompts_ppls)
         print(crt_length)
         overall_rewards = []
         # embed()
@@ -125,24 +119,12 @@ class DataGenerator():
                     txts_at_timestep.append(buckets[0])
                     overall_rewards.append([max(prompt_sample_rewards)-0.0003*10,max(prompt_sample_rewards)-0.0003*30, max(prompt_sample_rewards)-0.0003*60])
             elif mode == 'test':
-                # if trigger_score > 0.0001:
                 feature = [(crt_length/10, trigger_score, txt_v, txt_a, txt_prompt_ppl[1])]
                 l = [positiveStrategy.estimate(0, feature),
                      positiveStrategy.estimate(1, feature), \
                      positiveStrategy.estimate(2, feature)]
                 arm = np.argmax(l)
                 txts_at_timestep.append(buckets[arm])
-                # else:
-                #     txts_at_timestep.append(buckets[0])
-            elif mode =='baseline':
-
-                if useTrigger:
-                    if trigger_score > 0.0001:
-                        txts_at_timestep.append(buckets[presetBeam])
-                    else:
-                        txts_at_timestep.append(buckets[0])
-                else:
-                    txts_at_timestep.append(buckets[presetBeam])
 
         return txts_at_timestep, overall_features, np.asarray(overall_rewards), buckets
 
