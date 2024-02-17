@@ -14,10 +14,6 @@ Before you begin, ensure you have met the following requirements:
 Follow these steps to get your environment ready:
 
 1. **Clone the Repository**
-   ```
-   git clone [your-repository-link]
-   cd [repository-name]
-   ```
 
 2. **Install Dependencies**
    ```
